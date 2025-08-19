@@ -141,14 +141,24 @@ pob_censal_wide_db <- pob_censal_wide_db %>%
 write.xlsx(pob_censal_wide_db, "Data/pob_censal_wide.xlsx", overwrite = T)
 
   
+#Integración de tablas, validaciones y cálculos --------------------------------
 
-  
-  
-  
-  
-  
-  
-  
+
+##Unir población wide con mun area ------####
+
+#Conservar solo el área del departamento 
+mun_area_db_sub <- mun_area_db %>% 
+                   select(DPMP, MPIO_NAREA)
+
+#Agregar el área del departamento
+db <- left_join(pob_censal_wide_db, mun_area_db_sub, by = "DPMP")
+
+#Hay un municipio sin área 
+skim(db)
+
+db <- db %>% 
+      mutate(no_area = ifelse(is.na(MPIO_NAREA)== T, 1, 0))
+
   
   
   
