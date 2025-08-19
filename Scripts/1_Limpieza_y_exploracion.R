@@ -158,7 +158,7 @@ skim(db)
 
 db <- db %>% 
       mutate(no_area = ifelse(is.na(MPIO_NAREA)== T, 1, 0))
-
+#El municipio de Mapiripana en el departamento de Guainía no tiene un área registrada
   
   
   
