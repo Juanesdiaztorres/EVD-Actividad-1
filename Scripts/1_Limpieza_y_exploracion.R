@@ -25,17 +25,17 @@ p_load(
 ) 
 
 ##Definir el directorio de trabajo -------####
-wd <- here()
+wd <- here("C:/Users/mario/Documents/EVDS")
 setwd(wd)
 
 
 ##Cargar datos ----------####
 
 #Area del Municipio
-mun_area_db <- read.csv("Data/mun_area.csv")
+mun_area_db <- read.csv("mun_area.csv")
 
 #Población del municipio
-pob_censal_db <- read.xlsx("Data/pob_censal.xlsx")
+pob_censal_db <- read.xlsx("pob_censal.xlsx")
 
 
 #Entendimiento de los datos ----------------------------------------------------
@@ -138,7 +138,7 @@ pob_censal_wide_db <- pob_censal_wide_db %>%
                       )
 
 #Guardar base
-write.xlsx(pob_censal_wide_db, "Data/pob_censal_wide.xlsx", overwrite = T)
+write.xlsx(pob_censal_wide_db, "pob_censal_wide.xlsx", overwrite = T)
 
   
 #Integración de tablas, validaciones y cálculos --------------------------------
@@ -161,8 +161,86 @@ db <- db %>%
 #El municipio de Mapiripana en el departamento de Guainía no tiene un área registrada
   
   
+#Cálculos de interés - medición --------------------------------
+
+#Siguiendo Lora y Prada (2021)
+
+#Densidad poblacional
+db <- mutate(db, densidad_pob85 = Pob_1985/MPIO_NAREA)
+db <- mutate(db, densidad_pob93 = Pob_1993/MPIO_NAREA)
+db <- mutate(db, densidad_pob05 = Pob_2005/MPIO_NAREA)
+db <- mutate(db, densidad_pob18 = Pob_2018/MPIO_NAREA) 
+
+#Crecimiento absoluto
+
+db <- mutate(db, CA = Pob_2018 - Pob_1985)
+
+#Crecimiento porcentual
+db <- mutate(db, CP = CA/Pob_1985*100)
+
+#Agregación por departamento
+agregdepart <- db %>%
+  group_by(DPNOM) %>%
+  summarise(
+    Densidad_Promedio = mean(densidad_pob85, na.rm = TRUE),
+    Crecimiento_Absoluto = sum(CA, na.rm = TRUE),
+    Crecimiento_Porcentual = mean(CP, na.rm = TRUE)
+  )
+
+
+#Preguntas de indagación - Storytelling --------------------------------
+
+#1
+CA_top <- db %>%
+  arrange(desc(CA)) %>%
+  head(20)
+
+CP_top <- db %>%
+  arrange(desc(CP)) %>%
+  head(20)
+#2  
+densidad_top_93 <- db %>%
+  arrange(desc(densidad_pob93)) %>%
+  head(10)
+
+densidad_top_18  <- db %>%
+  arrange(desc(densidad_pob18)) %>%
+  head(10)
+
+#3
+densidad_top_93_dpto <- db %>%
+  arrange(DPNOM, densidad_pob93)
+
+densidad_top_93_dpto %>% top_n(5, densidad_pob93)
+
+densidad_top_18_dpto <- db %>%
+  arrange(DPNOM, densidad_pob18)
+
+c <- densidad_top_18_dpto %>% top_n(5, densidad_pob18)
+
+#4 
+#Gráfico Q-Q
+ggplot(db, aes(sample = scale(Pob_1985))) +
+  geom_qq() +
+  geom_abline()
+
+
+
+
+
+
+
   
   
+  
+  
+  
+  
+  
+
+
+
+
   
   
   
