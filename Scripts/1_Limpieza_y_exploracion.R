@@ -176,7 +176,8 @@ db <- mutate(db, densidad_pob18 = Pob_2018/MPIO_NAREA)
 db <- mutate(db, CA = Pob_2018 - Pob_1985)
 
 #Crecimiento porcentual
-db <- mutate(db, CP = CA/Pob_1985*100)
+db <- mutate(db, CPD = CA/Pob_1985)
+db <- mutate(db, CP = CPD*100)
 
 #Agregación por departamento
 agregdepart <- db %>%
@@ -195,9 +196,12 @@ CA_top <- db %>%
   arrange(desc(CA)) %>%
   head(20)
 
+
 CP_top <- db %>%
+  filter(is.finite(CP)) %>%
   arrange(desc(CP)) %>%
   head(20)
+
 #2  
 densidad_top_93 <- db %>%
   arrange(desc(densidad_pob93)) %>%
@@ -208,21 +212,48 @@ densidad_top_18  <- db %>%
   head(10)
 
 #3
-densidad_top_93_dpto <- db %>%
-  arrange(DPNOM, densidad_pob93)
 
-densidad_top_93_dpto %>% top_n(5, densidad_pob93)
+top5_densidad_93 <- db %>%
+  group_by(DPNOM) %>%
+  summarise(
+    poblacion = sum(Pob_1993, na.rm = TRUE),
+    area = sum(MPIO_NAREA, na.rm = TRUE),
+    densidad = poblacion/area
+  ) %>%
+  arrange(desc(densidad)) %>%
+  slice_head(n = 5)
 
-densidad_top_18_dpto <- db %>%
-  arrange(DPNOM, densidad_pob18)
-
-c <- densidad_top_18_dpto %>% top_n(5, densidad_pob18)
+top5_densidad_18 <- db %>%
+  group_by(DPNOM) %>%
+  summarise(
+    poblacion = sum(Pob_2018, na.rm = TRUE),
+    area = sum(MPIO_NAREA, na.rm = TRUE),
+    densidad = poblacion/area
+  ) %>%
+  arrange(desc(densidad)) %>%
+  slice_head(n = 5)
 
 #4 
 #Gráfico Q-Q
 ggplot(db, aes(sample = scale(Pob_1985))) +
   geom_qq() +
   geom_abline()
+
+
+
+
+
+
+
+  
+  
+  
+  
+  
+  
+  
+
+
 
 
 
